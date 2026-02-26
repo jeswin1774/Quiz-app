@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Dev Quiz Sessions</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDyh3lcD5gI8MZazsY6G521sjTYe_A2LJk",
+    authDomain: "quiz-app-79fb8.firebaseapp.com",
+    projectId: "quiz-app-79fb8",
+    storageBucket: "quiz-app-79fb8.firebasestorage.app",
+    messagingSenderId: "924259227895",
+    appId: "1:924259227895:web:5b05315c3225d7f00c9bf2",
+    measurementId: "G-Y6NBRYWQQF"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.__db = db;
+  window.__fsCollection = collection;
+  window.__fsAddDoc = addDoc;
+  window.__fsGetDocs = getDocs;
+  window.__fsQuery = query;
+  window.__fsOrderBy = orderBy;
+</script>
+
+<style>
+  :root {
+    --bg: #0e0e14;
+    --surface: #16161f;
+    --card: #1c1c28;
+    --border: #2a2a3a;
+    --html-color: #ff6b35;
+    --css-color: #3b9eff;
+    --js-color: #f7df1e;
+    --php-color: #a78bfa;
+    --master-color: #2dce89;
+    --correct: #2dce89;
+    --wrong: #f5365c;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* ===== LOGIN SCREEN ===== */
+  #login {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .login-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 40px;
+    max-width: 440px;
+    width: 100%;
+    animation: slideUp 0.4s ease;
+  }
+  .login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .login-logo .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .login-logo h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+  }
+  .login-logo p {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: 8px;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .form-group input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--css-color); }
+  .login-btn {
+    width: 100%;
+    background: var(--css-color);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .login-btn:hover { opacity: 0.85; transform: scale(1.01); }
+  .login-error {
+    background: rgba(245,54,92,0.1);
+    border: 1px solid rgba(245,54,92,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--wrong);
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+    display: none;
+    text-align: center;
+  }
+  .login-info {
+    background: rgba(59,158,255,0.07);
+    border: 1px solid rgba(59,158,255,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(59,158,255,0.7);
+    margin-top: 18px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* ===== HOME ===== */
+  #home {
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 50px 20px 70px;
+  }
+  .home-top { text-align: center; margin-bottom: 44px; }
+  .top-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    cursor: pointer;
+    position: relative;
+  }
+  .home-top h1 {
+    font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 14px;
+  }
+  .home-top p { color: var(--muted); font-size: 1rem; }
+  .ht { color: var(--html-color); }
+  .ct { color: var(--css-color); }
+  .jt { color: var(--js-color); }
+  .pt { color: var(--php-color); }
+  .student-welcome {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--correct);
+    margin-bottom: 10px;
+  }
+
+  /* DB image strip */
+  .db-strip {
+    width: 100%; max-width: 1000px;
+    margin-bottom: 36px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    height: 160px;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 40%, #0d2135 100%);
+  }
+  .db-strip-content {
+    position: absolute; inset: 0;
+    display: flex; align-items: center;
+    padding: 0 32px;
+    gap: 24px;
+  }
+  .db-strip-icon { font-size: 3rem; flex-shrink: 0; }
+  .db-strip-text h3 { font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .db-strip-text p  { color: rgba(255,255,255,0.5); font-size: 0.82rem; margin-bottom: 10px; }
+  .db-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .db-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 1px;
+  }
+  .db-strip-right {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .db-stat { text-align: right; }
+  .db-stat .ds-num { font-family: 'Space Mono', monospace; font-size: 1.6rem; font-weight: 700; color: var(--css-color); }
+  .db-stat .ds-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.4); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
+
+  /* Overall progress */
+  .overall-progress {
+    width: 100%; max-width: 1000px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .prog-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .prog-track { flex: 1; min-width: 140px; height: 7px; background: var(--border); border-radius: 100px; overflow: hidden; }
+  .prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--html-color), var(--css-color), var(--js-color), var(--master-color));
+    border-radius: 100px;
+    transition: width 0.6s ease;
+  }
+  .prog-count { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--text); white-space: nowrap; }
+
+  /* Sessions grid */
+  .sessions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    width: 100%; max-width: 1000px;
+  }
+  .session-card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .session-card.locked { cursor: not-allowed; opacity: 0.48; filter: grayscale(0.4); }
+  .session-card.done { border-color: rgba(45,206,137,0.35); }
+  .session-card.done::after {
+    content: '✓ DONE';
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(45,206,137,0.12);
+    color: var(--correct);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.63rem; font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid rgba(45,206,137,0.25);
+  }
+  .card-glow {
+    position: absolute; top: -50%; right: -20%;
+    width: 170px; height: 170px;
+    border-radius: 50%; opacity: 0.06;
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  .session-card:not(.locked):hover { transform: translateY(-5px); }
+  .session-card:not(.locked):hover .card-glow { opacity: 0.13; }
+  .html-card:hover { box-shadow: 0 16px 48px rgba(255,107,53,0.18); }
+  .css-card:hover  { box-shadow: 0 16px 48px rgba(59,158,255,0.18); }
+  .js-card:hover   { box-shadow: 0 16px 48px rgba(247,223,30,0.15); }
+  .php-card:hover  { box-shadow: 0 16px 48px rgba(167,139,250,0.18); }
+  .master-card:not(.locked):hover { box-shadow: 0 16px 48px rgba(45,206,137,0.2); }
+
+  .snum {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 100px;
+    margin-bottom: 16px;
+  }
+  .html-card .snum { background: rgba(255,107,53,0.12); color: var(--html-color); }
+  .css-card .snum  { background: rgba(59,158,255,0.12);  color: var(--css-color); }
+  .js-card .snum   { background: rgba(247,223,30,0.12);  color: var(--js-color); }
+  .php-card .snum  { background: rgba(167,139,250,0.12); color: var(--php-color); }
+  .master-card .snum { background: rgba(45,206,137,0.12); color: var(--master-color); }
+
+  .session-card h2 {
+    font-size: 1.85rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .html-card h2 { color: var(--html-color); }
+  .css-card h2  { color: var(--css-color); }
+  .js-card h2   { color: var(--js-color); }
+  .php-card h2  { color: var(--php-color); }
+  .master-card h2 { color: var(--master-color); }
+
+  .session-card .desc { color: var(--muted); font-size: 0.84rem; line-height: 1.6; margin-bottom: 20px; }
+  .session-card .smeta {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .s-start-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 18px; padding: 10px 20px;
+    border-radius: 100px; border: none; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .html-card .s-start-btn  { background: var(--html-color);  color: #fff; }
+  .css-card .s-start-btn   { background: var(--css-color);   color: #fff; }
+  .js-card .s-start-btn    { background: var(--js-color);    color: #111; }
+  .php-card .s-start-btn   { background: var(--php-color);   color: #fff; }
+  .master-card .s-start-btn { background: var(--master-color); color: #111; }
+  .s-start-btn:hover { opacity: 0.85; transform: scale(1.04); }
+
+  .lock-msg {
+    margin-top: 16px; font-size: 0.78rem;
+    color: var(--muted); font-family: 'Space Mono', monospace;
+  }
+
+  /* Master card */
+  .master-card {
+    grid-column: 1 / -1;
+    display: flex; flex-direction: row;
+    align-items: center; gap: 28px;
+    padding: 28px 30px;
+  }
+  .master-left { flex: 1; }
+  .master-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 10px; flex-shrink: 0;
+  }
+  .lock-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .lchip {
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    padding: 4px 11px; border-radius: 100px;
+    border: 1px solid var(--border); color: var(--muted);
+    transition: all 0.35s;
+  }
+  .lchip.done { border-color: rgba(45,206,137,0.4); color: var(--correct); background: rgba(45,206,137,0.08); }
+
+  /* ===== QUIZ SCREEN ===== */
+  #quiz {
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+    max-width: 720px; margin: 0 auto; width: 100%;
+  }
+  .quiz-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 34px; flex-wrap: wrap; gap: 12px;
+  }
+  .quiz-back {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 8px 16px; border-radius: 100px;
+    cursor: pointer; font-family: 'Syne', sans-serif;
+    font-size: 0.85rem; transition: all 0.2s;
+  }
+  .quiz-back:hover { color: var(--text); border-color: var(--text); }
+  .qlabel {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 700; padding: 6px 14px; border-radius: 100px;
+  }
+  .html-label   { background: rgba(255,107,53,0.12); color: var(--html-color); }
+  .css-label    { background: rgba(59,158,255,0.12);  color: var(--css-color); }
+  .js-label     { background: rgba(247,223,30,0.12);  color: var(--js-color); }
+  .php-label    { background: rgba(167,139,250,0.12); color: var(--php-color); }
+  .master-label { background: rgba(45,206,137,0.12);  color: var(--master-color); }
+
+  .prog-wrap { margin-bottom: 30px; }
+  .prog-info {
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace; font-size: 0.73rem;
+    color: var(--muted); margin-bottom: 9px;
+  }
+  .prog-bg { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+  .prog-bar {
+    height: 100%; border-radius: 100px; transition: width 0.4s ease;
+  }
+  .html-fill   { background: var(--html-color); }
+  .css-fill    { background: var(--css-color); }
+  .js-fill     { background: var(--js-color); }
+  .php-fill    { background: var(--php-color); }
+  .master-fill { background: linear-gradient(90deg, var(--html-color), var(--css-color), var(--js-color), var(--php-color)); }
+
+  .q-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px; margin-bottom: 18px;
+    animation: slideUp 0.3s ease both;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+  .q-num {
+    font-family: 'Space Mono', monospace; font-size: 0.68rem;
+    color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 13px;
+  }
+  .q-text { font-size: 1.18rem; font-weight: 700; line-height: 1.55; margin-bottom: 6px; letter-spacing: -0.2px; }
+  .q-code {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 16px;
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    color: #b0c4de; margin: 13px 0 4px;
+    white-space: pre; overflow-x: auto; line-height: 1.75;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+  .opt-btn {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 12px; padding: 13px 16px; cursor: pointer;
+    text-align: left; display: flex; align-items: center; gap: 12px;
+    font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 600;
+    color: var(--text); transition: all 0.15s ease;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: #444; background: #1f1f2e; transform: translateX(3px); }
+  .opt-letter {
+    width: 29px; height: 29px; border-radius: 50%; background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
+    flex-shrink: 0; transition: background 0.15s, color 0.15s;
+  }
+  .opt-btn.correct { border-color: var(--correct); background: rgba(45,206,137,0.08); animation: pop 0.32s ease; }
+  .opt-btn.correct .opt-letter { background: var(--correct); color: #fff; }
+  @keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.03)} 100%{transform:scale(1)} }
+  .opt-btn.wrong   { border-color: var(--wrong); background: rgba(245,54,92,0.08); animation: shake 0.36s ease; }
+  .opt-btn.wrong .opt-letter { background: var(--wrong); color: #fff; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  .opt-btn.show-correct { border-color: var(--correct); background: rgba(45,206,137,0.05); }
+  .opt-btn.show-correct .opt-letter { background: var(--correct); color: #fff; }
+
+  .feedback {
+    border-radius: 12px; padding: 15px 17px;
+    font-size: 0.88rem; line-height: 1.6;
+    margin-top: 13px; display: none;
+    animation: fadeIn 0.25s ease; border: 1px solid;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .fb-ok  { background: rgba(45,206,137,0.07); border-color: rgba(45,206,137,0.22); color: var(--correct); }
+  .fb-err { background: rgba(245,54,92,0.07);  border-color: rgba(245,54,92,0.22);  color: #ff8fa3; }
+
+  .next-btn {
+    display: none; width: 100%; padding: 14px;
+    border: none; border-radius: 12px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+    transition: all 0.2s; margin-top: 16px;
+  }
+  .html-btn   { background: var(--html-color);  color: #fff; }
+  .css-btn    { background: var(--css-color);   color: #fff; }
+  .js-btn     { background: var(--js-color);    color: #111; }
+  .php-btn    { background: var(--php-color);   color: #fff; }
+  .master-btn { background: var(--master-color); color: #111; }
+  .next-btn:hover { opacity: 0.86; transform: scale(1.01); }
+
+  /* ===== RESULTS ===== */
+  #results {
+    align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px 20px;
+  }
+  .res-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 24px; padding: 46px 40px;
+    max-width: 520px; width: 100%;
+    text-align: center; animation: slideUp 0.45s ease both;
+  }
+  .res-emoji { font-size: 3.6rem; margin-bottom: 13px; display: block; }
+  .res-title { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 7px; }
+  .res-sub   { color: var(--muted); margin-bottom: 26px; font-size: 0.93rem; }
+  .unlock-banner {
+    display: none;
+    background: rgba(45,206,137,0.1); border: 1px solid rgba(45,206,137,0.3);
+    border-radius: 11px; padding: 13px 16px; margin-bottom: 18px;
+    color: var(--correct); font-size: 0.88rem; font-weight: 700;
+    animation: fadeIn 0.5s ease 0.3s both;
+  }
+  .score-big { font-size: 4.6rem; font-weight: 800; letter-spacing: -3px; font-family: 'Space Mono', monospace; margin-bottom: 5px; }
+  .score-lbl { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 28px; }
+  .stat-row { display: flex; justify-content: center; gap: 26px; margin-bottom: 32px; }
+  .stat-v { font-size: 1.65rem; font-weight: 800; font-family: 'Space Mono', monospace; }
+  .stat-l { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Space Mono', monospace; }
+  .sg { color: var(--correct); } .so { color: #ffd166; } .sb { color: var(--wrong); }
+  .res-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .res-actions button {
+    flex: 1; padding: 12px 16px; border-radius: 100px;
+    border: 1px solid var(--border); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 0.87rem; font-weight: 700;
+    transition: all 0.2s; background: var(--surface); color: var(--text);
+  }
+  .res-actions button:hover { background: #252535; }
+  #btn-retry { background: transparent !important; }
+
+  /* ===== ADMIN PANEL ===== */
+  #admin-login {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .admin-login-card {
+    background: var(--card);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 24px;
+    padding: 44px 36px;
+    max-width: 400px;
+    width: 100%;
+    animation: slideUp 0.4s ease;
+  }
+  .admin-login-card h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--php-color);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .admin-login-card p {
+    color: var(--muted);
+    font-size: 0.83rem;
+    margin-bottom: 28px;
+  }
+  .admin-login-btn {
+    width: 100%;
+    background: var(--php-color);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .admin-login-btn:hover { opacity: 0.85; }
+  .admin-cancel-btn {
+    width: 100%;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .admin-cancel-btn:hover { color: var(--text); border-color: var(--text); }
+
+  #admin {
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 30px 20px 60px;
+  }
+  .admin-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap; gap: 14px;
+    max-width: 1200px; width: 100%; margin-left: auto; margin-right: auto;
+  }
+  .admin-title {
+    font-size: 1.6rem; font-weight: 800; letter-spacing: -1px;
+    color: var(--php-color);
+  }
+  .admin-title span { color: var(--muted); font-size: 0.8rem; font-weight: 400; font-family: 'Space Mono', monospace; margin-left: 10px; }
+  .admin-logout {
+    background: none;
+    border: 1px solid rgba(245,54,92,0.4);
+    color: var(--wrong);
+    padding: 8px 18px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .admin-logout:hover { background: rgba(245,54,92,0.08); }
+
+  /* Subject tabs */
+  .subject-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    max-width: 1200px; width: 100%; margin: 0 auto 24px;
+  }
+  .stab {
+    padding: 9px 22px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .stab:hover { color: var(--text); border-color: #444; }
+  .stab.active-html { background: rgba(255,107,53,0.12); border-color: var(--html-color); color: var(--html-color); }
+  .stab.active-css  { background: rgba(59,158,255,0.12); border-color: var(--css-color); color: var(--css-color); }
+  .stab.active-js   { background: rgba(247,223,30,0.12); border-color: var(--js-color); color: var(--js-color); }
+  .stab.active-php  { background: rgba(167,139,250,0.12); border-color: var(--php-color); color: var(--php-color); }
+  .stab.active-all  { background: rgba(45,206,137,0.12); border-color: var(--master-color); color: var(--master-color); }
+
+  /* Admin table */
+  .admin-table-wrap {
+    max-width: 1200px; width: 100%; margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease;
+  }
+  .admin-table-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .admin-table-header h3 {
+    font-size: 1rem; font-weight: 700;
+    font-family: 'Space Mono', monospace;
+  }
+  .admin-refresh {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 14px; border-radius: 100px;
+    cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    transition: all 0.2s;
+  }
+  .admin-refresh:hover { color: var(--text); border-color: #555; }
+  table.admin-tbl {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table.admin-tbl th {
+    background: rgba(255,255,255,0.03);
+    padding: 12px 16px;
+    text-align: left;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  table.admin-tbl td {
+    padding: 13px 16px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+  table.admin-tbl tr:last-child td { border-bottom: none; }
+  table.admin-tbl tr:hover td { background: rgba(255,255,255,0.02); }
+  .score-pill {
+    display: inline-block;
+    padding: 3px 12px; border-radius: 100px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; font-weight: 700;
+  }
+  .score-high { background: rgba(45,206,137,0.12); color: var(--correct); }
+  .score-mid  { background: rgba(255,209,102,0.12); color: #ffd166; }
+  .score-low  { background: rgba(245,54,92,0.12);   color: var(--wrong); }
+  .subject-badge {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 100px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .s-html { background: rgba(255,107,53,0.12); color: var(--html-color); }
+  .s-css  { background: rgba(59,158,255,0.12);  color: var(--css-color); }
+  .s-js   { background: rgba(247,223,30,0.12);  color: var(--js-color); }
+  .s-php  { background: rgba(167,139,250,0.12); color: var(--php-color); }
+  .s-master { background: rgba(45,206,137,0.12); color: var(--master-color); }
+
+  .admin-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .admin-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    animation: pulse 1.5s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  /* Stats bar */
+  .admin-stats-bar {
+    max-width: 1200px; width: 100%; margin: 0 auto 20px;
+    display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .astat-card {
+    flex: 1; min-width: 140px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+  }
+  .astat-num { font-family: 'Space Mono', monospace; font-size: 1.6rem; font-weight: 700; }
+  .astat-lbl { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+  @media (max-width: 600px) {
+    .master-card { flex-direction: column; }
+    .master-right { align-items: flex-start; }
+    .lock-chips { justify-content: flex-start; }
+    .db-strip-right { display: none; }
+    .q-card { padding: 20px 14px; }
+    .res-card { padding: 30px 16px; }
+    .score-big { font-size: 3.2rem; }
+    .login-card { padding: 30px 20px; }
+    table.admin-tbl td, table.admin-tbl th { padding: 10px 10px; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ========== LOGIN ========== -->
+<section id="login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1><span class="ht">HTML</span> · <span class="ct">CSS</span> · <span class="jt">JS</span> · <span class="pt">PHP</span></h1>
+      <p>Web Dev Quiz — Sign in to continue</p>
+    </div>
+    <div class="login-error" id="login-error">⚠️ Invalid Reg No or Password</div>
+    <div class="form-group">
+      <label>Registration Number</label>
+      <input type="text" id="inp-regno" placeholder="e.g. 2024CS001" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="inp-pass" placeholder="Enter your password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+
+
+  </div>
+</section>
+
+<!-- ========== HOME ========== -->
+<section id="home" class="screen">
+  <div class="home-top">
+    <div class="top-badge" id="top-badge-click" onclick="badgeClick()" title="">✦ Web Dev Quiz Sessions</div>
+    <div class="student-welcome" id="student-welcome"></div>
+    <h1><span class="ht">HTML</span> · <span class="ct">CSS</span><br><span class="jt">JS</span> · <span class="pt">PHP</span></h1>
+    <p>Complete all 4 sessions to unlock the Master Challenge 🏆</p>
+  </div>
+
+  <div class="db-strip">
+    <div class="db-strip-content">
+      <div class="db-strip-icon">🗄️</div>
+      <div class="db-strip-text">
+        <h3>Free Database Platforms</h3>
+        <p>Topics covered in your screenshots — included in the quizzes</p>
+        <div class="db-badges">
+          <span class="db-badge">Firebase RT DB</span>
+          <span class="db-badge">Firestore</span>
+          <span class="db-badge">Supabase</span>
+          <span class="db-badge">AWS RDS</span>
+          <span class="db-badge">Azure SQL</span>
+          <span class="db-badge">Neon</span>
+          <span class="db-badge">Cosmos DB</span>
+          <span class="db-badge">Oracle Cloud</span>
+        </div>
+      </div>
+      <div class="db-strip-right">
+        <div class="db-stat">
+          <div class="ds-num">9</div>
+          <div class="ds-lbl">Platforms</div>
+        </div>
+        <div class="db-stat">
+          <div class="ds-num" style="color:var(--master-color)">Free</div>
+          <div class="ds-lbl">Tiers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overall-progress">
+    <span class="prog-label">Overall Progress</span>
+    <div class="prog-track"><div class="prog-fill" id="overall-fill" style="width:0%"></div></div>
+    <span class="prog-count" id="overall-count">0 / 4 completed</span>
+  </div>
+
+  <div class="sessions-grid">
+    <div class="session-card html-card" id="card-html" onclick="startQuiz('html')">
+      <div class="card-glow" style="background:var(--html-color)"></div>
+      <div class="snum">Session 01</div>
+      <h2>HTML</h2>
+      <p class="desc">Tags, attributes, forms, links — the skeleton of every web page.</p>
+      <div class="smeta"><span>📝 10 Questions</span><span>⏱ ~5 min</span></div>
+      <button class="s-start-btn">Start Quiz →</button>
+    </div>
+
+    <div class="session-card css-card" id="card-css" onclick="startQuiz('css')">
+      <div class="card-glow" style="background:var(--css-color)"></div>
+      <div class="snum">Session 02</div>
+      <h2>CSS</h2>
+      <p class="desc">Selectors, box model, flexbox, colors — making things beautiful.</p>
+      <div class="smeta"><span>📝 10 Questions</span><span>⏱ ~5 min</span></div>
+      <button class="s-start-btn">Start Quiz →</button>
+    </div>
+
+    <div class="session-card js-card" id="card-js" onclick="startQuiz('js')">
+      <div class="card-glow" style="background:var(--js-color)"></div>
+      <div class="snum">Session 03</div>
+      <h2>JavaScript</h2>
+      <p class="desc">Variables, functions, DOM events — the brain of the web.</p>
+      <div class="smeta"><span>📝 10 Questions</span><span>⏱ ~5 min</span></div>
+      <button class="s-start-btn">Start Quiz →</button>
+    </div>
+
+    <div class="session-card php-card" id="card-php" onclick="startQuiz('php')">
+      <div class="card-glow" style="background:var(--php-color)"></div>
+      <div class="snum">Session 04</div>
+      <h2>PHP</h2>
+      <p class="desc">Server scripting, variables, forms, databases — the kitchen of the web.</p>
+      <div class="smeta"><span>📝 10 Questions</span><span>⏱ ~5 min</span></div>
+      <button class="s-start-btn">Start Quiz →</button>
+    </div>
+
+    <div class="session-card master-card locked" id="card-master" onclick="tryMaster()">
+      <div class="card-glow" style="background:var(--master-color)"></div>
+      <div class="master-left">
+        <div class="snum">🏆 MASTER CHALLENGE</div>
+        <h2>All 4 Topics</h2>
+        <p class="desc">40 mixed questions from HTML, CSS, JavaScript &amp; PHP. Unlock by completing every session.</p>
+        <div class="smeta"><span>📝 40 Questions</span><span>⏱ ~20 min</span></div>
+        <div class="lock-msg" id="master-lock-msg">🔒 Complete all 4 sessions to unlock</div>
+        <button class="s-start-btn" id="master-start-btn" style="display:none" onclick="startQuiz('master')">Start Master Quiz →</button>
+      </div>
+      <div class="master-right">
+        <div class="lock-chips">
+          <span class="lchip" id="chip-html">HTML</span>
+          <span class="lchip" id="chip-css">CSS</span>
+          <span class="lchip" id="chip-js">JS</span>
+          <span class="lchip" id="chip-php">PHP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== QUIZ ========== -->
+<section id="quiz" class="screen">
+  <div class="quiz-header">
+    <button class="quiz-back" onclick="goHome()">← Back</button>
+    <span id="qlabel" class="qlabel"></span>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-info">
+      <span id="q-counter">Question 1 of 10</span>
+      <span id="q-live-score">Score: 0</span>
+    </div>
+    <div class="prog-bg">
+      <div class="prog-bar" id="prog-bar" style="width:10%"></div>
+    </div>
+  </div>
+  <div class="q-card" id="q-card">
+    <div class="q-num" id="q-num">Q1</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="q-code" id="q-code" style="display:none"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <button class="next-btn" id="next-btn" onclick="nextQ()">Next Question →</button>
+</section>
+
+<!-- ========== RESULTS ========== -->
+<section id="results" class="screen">
+  <div class="res-card">
+    <span class="res-emoji" id="res-emoji">🎉</span>
+    <div class="res-title" id="res-title">Quiz Complete!</div>
+    <div class="res-sub" id="res-sub"></div>
+    <div class="unlock-banner" id="unlock-banner">🎉 Master Challenge Unlocked! All 4 sessions complete!</div>
+    <div class="score-big" id="score-big">0/10</div>
+    <div class="score-lbl">Final Score</div>
+    <div class="stat-row">
+      <div>
+        <div class="stat-v" id="s-correct" style="color:var(--correct)">0</div>
+        <div class="stat-l">Correct</div>
+      </div>
+      <div>
+        <div class="stat-v" id="s-wrong" style="color:var(--wrong)">0</div>
+        <div class="stat-l">Wrong</div>
+      </div>
+      <div>
+        <div class="stat-v" id="s-pct">0%</div>
+        <div class="stat-l">Accuracy</div>
+      </div>
+    </div>
+    <div class="res-actions">
+      <button id="btn-retry" onclick="retryQuiz()">↺ Retry</button>
+      <button onclick="goHome()">🏠 Home</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ADMIN LOGIN ========== -->
+<section id="admin-login" class="screen">
+  <div class="admin-login-card">
+    <h2>🔐 Admin Portal</h2>
+    <p>Jestech Institute — Restricted Access</p>
+    <div class="login-error" id="admin-error">⚠️ Invalid credentials</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="admin-user" placeholder="Admin username" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="admin-pass" placeholder="Admin password">
+    </div>
+    <button class="admin-login-btn" onclick="doAdminLogin()">Access Panel →</button>
+    <button class="admin-cancel-btn" onclick="show('home')">← Go Back</button>
+  </div>
+</section>
+
+<!-- ========== ADMIN PANEL ========== -->
+<section id="admin" class="screen">
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">📊 Admin Panel <span>Jestech Institute</span></div>
+    </div>
+    <button class="admin-logout" onclick="adminLogout()">Logout →</button>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="admin-stats-bar" id="admin-stats-bar">
+    <div class="astat-card">
+      <div class="astat-num" id="stat-total" style="color:var(--css-color)">—</div>
+      <div class="astat-lbl">Total Attempts</div>
+    </div>
+    <div class="astat-card">
+      <div class="astat-num" id="stat-students" style="color:var(--master-color)">—</div>
+      <div class="astat-lbl">Unique Students</div>
+    </div>
+    <div class="astat-card">
+      <div class="astat-num" id="stat-avgpct" style="color:var(--js-color)">—</div>
+      <div class="astat-lbl">Avg. Score %</div>
+    </div>
+    <div class="astat-card">
+      <div class="astat-num" id="stat-perfect" style="color:var(--html-color)">—</div>
+      <div class="astat-lbl">Perfect Scores</div>
+    </div>
+  </div>
+
+  <!-- Subject tabs -->
+  <div class="subject-tabs">
+    <button class="stab active-html" id="tab-html"    onclick="switchTab('html')">HTML</button>
+    <button class="stab"             id="tab-css"     onclick="switchTab('css')">CSS</button>
+    <button class="stab"             id="tab-js"      onclick="switchTab('js')">JavaScript</button>
+    <button class="stab"             id="tab-php"     onclick="switchTab('php')">PHP</button>
+    <button class="stab"             id="tab-master"  onclick="switchTab('master')">Master</button>
+    <button class="stab"             id="tab-all"     onclick="switchTab('all')">All Students</button>
+  </div>
+
+  <!-- Table -->
+  <div class="admin-table-wrap">
+    <div class="admin-table-header">
+      <h3 id="admin-table-title" style="color:var(--html-color)">HTML Quiz Results</h3>
+      <button class="admin-refresh" onclick="loadAdminData()">↻ Refresh</button>
+    </div>
+    <div id="admin-table-body">
+      <div class="admin-loading">Loading data from Firebase...</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- .app -->
+
+<script>
+// ============================================================
+//  LOGIN RULE: Password = last 3 digits of Registration Number
+//  e.g. Reg No: 951323106020 → Password: 020
+// ============================================================
+
+// Admin credentials
+const ADMIN_USER = "jestech";
+const ADMIN_PASS = "godsgrace";
+
+// ============================================================
+//  STATE
+// ============================================================
+let currentStudent = null;
+let secretClickCount = 0;
+let secretTimer = null;
+const done = { html:false, css:false, js:false, php:false };
+let curSession = 'html', curQ = 0, score = 0, answered = false, questions = [];
+let currentTab = 'html';
+let allAdminData = [];
+
+// ============================================================
+//  LOGIN
+// ============================================================
+function doLogin() {
+  const reg  = document.getElementById('inp-regno').value.trim();
+  const pass = document.getElementById('inp-pass').value.trim();
+  const err  = document.getElementById('login-error');
+
+  if (reg.length < 3) {
+    err.style.display = 'block';
+    return;
+  }
+
+  const expectedPass = reg.slice(-3);
+  if (pass === expectedPass) {
+    currentStudent = reg;
+    err.style.display = 'none';
+    document.getElementById('student-welcome').textContent = '👋 Welcome, ' + currentStudent;
+    show('home');
+    refreshHome();
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+// Allow Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const active = document.querySelector('.screen.active');
+    if (active && active.id === 'login') doLogin();
+    if (active && active.id === 'admin-login') doAdminLogin();
+  }
+});
+
+// ============================================================
+//  SECRET 5-CLICK ADMIN TRIGGER (click the top badge)
+// ============================================================
+function badgeClick() {
+  secretClickCount++;
+  clearTimeout(secretTimer);
+  secretTimer = setTimeout(() => { secretClickCount = 0; }, 3000);
+  if (secretClickCount >= 5) {
+    secretClickCount = 0;
+    clearTimeout(secretTimer);
+    show('admin-login');
+    document.getElementById('admin-user').value = '';
+    document.getElementById('admin-pass').value = '';
+    document.getElementById('admin-error').style.display = 'none';
+  }
+}
+
+// ============================================================
+//  ADMIN LOGIN
+// ============================================================
+function doAdminLogin() {
+  const user = document.getElementById('admin-user').value.trim();
+  const pass = document.getElementById('admin-pass').value.trim();
+  const err  = document.getElementById('admin-error');
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    err.style.display = 'none';
+    show('admin');
+    loadAdminData();
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+function adminLogout() {
+  show('home');
+}
+
+// ============================================================
+//  FIREBASE DATA
+// ============================================================
+async function saveResult(session, sc, total) {
+  if (!window.__db) return;
+  try {
+    const col = window.__fsCollection(window.__db, 'quiz_results');
+    await window.__fsAddDoc(col, {
+      regNo: currentStudent,
+      session: session,
+      score: sc,
+      total: total,
+      percent: Math.round(sc / total * 100),
+      timestamp: new Date().toISOString(),
+      date: new Date().toLocaleDateString('en-IN')
+    });
+  } catch(e) {
+    console.warn('Firebase save error:', e);
+  }
+}
+
+async function loadAdminData() {
+  if (!window.__db) {
+    document.getElementById('admin-table-body').innerHTML =
+      '<div class="admin-empty">⚠️ Firebase not configured. Please add your Firebase config in the &lt;script type="module"&gt; at the top.</div>';
+    return;
+  }
+  document.getElementById('admin-table-body').innerHTML = '<div class="admin-loading">Loading from Firebase...</div>';
+  try {
+    const col = window.__fsCollection(window.__db, 'quiz_results');
+    const q = window.__fsQuery(col, window.__fsOrderBy('timestamp', 'desc'));
+    const snap = await window.__fsGetDocs(q);
+    allAdminData = [];
+    snap.forEach(doc => allAdminData.push(doc.data()));
+    updateStats();
+    renderTable(currentTab);
+  } catch(e) {
+    document.getElementById('admin-table-body').innerHTML =
+      '<div class="admin-empty">❌ Error loading data: ' + e.message + '</div>';
+  }
+}
+
+function updateStats() {
+  const d = allAdminData;
+  document.getElementById('stat-total').textContent    = d.length;
+  const unique = new Set(d.map(r => r.regNo)).size;
+  document.getElementById('stat-students').textContent = unique;
+  const avg = d.length ? Math.round(d.reduce((s,r)=>s+r.percent,0)/d.length) : 0;
+  document.getElementById('stat-avgpct').textContent   = avg + '%';
+  const perfect = d.filter(r => r.percent === 100).length;
+  document.getElementById('stat-perfect').textContent  = perfect;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  // Update tab button classes
+  ['html','css','js','php','master','all'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (!el) return;
+    el.className = 'stab';
+    if (t === tab) el.classList.add('active-' + (tab === 'all' ? 'all' : tab));
+  });
+  renderTable(tab);
+}
+
+function renderTable(tab) {
+  const titles = { html:'HTML Quiz Results', css:'CSS Quiz Results', js:'JavaScript Quiz Results', php:'PHP Quiz Results', master:'Master Challenge Results', all:'All Students Results' };
+  const colors = { html:'var(--html-color)', css:'var(--css-color)', js:'var(--js-color)', php:'var(--php-color)', master:'var(--master-color)', all:'var(--text)' };
+  document.getElementById('admin-table-title').textContent = titles[tab] || 'Results';
+  document.getElementById('admin-table-title').style.color = colors[tab] || 'var(--text)';
+
+  const rows = tab === 'all' ? allAdminData : allAdminData.filter(r => r.session === tab);
+
+  if (!rows.length) {
+    document.getElementById('admin-table-body').innerHTML = '<div class="admin-empty">📭 No results yet for this section.</div>';
+    return;
+  }
+
+  let html = '<div style="overflow-x:auto"><table class="admin-tbl"><thead><tr>';
+  if (tab === 'all') {
+    html += '<th>#</th><th>Reg No</th><th>Subject</th><th>Score</th><th>%</th><th>Date</th>';
+  } else {
+    html += '<th>#</th><th>Reg No</th><th>Score</th><th>Total</th><th>%</th><th>Grade</th><th>Date</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  rows.forEach((r, i) => {
+    const pct = r.percent;
+    const pillClass = pct >= 80 ? 'score-high' : pct >= 50 ? 'score-mid' : 'score-low';
+    const grade = pct >= 80 ? '🏆 Excellent' : pct >= 50 ? '👍 Good' : '📚 Needs Work';
+    const subBadge = `<span class="subject-badge s-${r.session}">${(r.session||'').toUpperCase()}</span>`;
+
+    if (tab === 'all') {
+      html += `<tr>
+        <td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.75rem">${i+1}</td>
+        <td style="font-family:'Space Mono',monospace;font-size:0.82rem">${r.regNo||'—'}</td>
+        <td>${subBadge}</td>
+        <td><span class="score-pill ${pillClass}">${r.score}/${r.total}</span></td>
+        <td><span class="score-pill ${pillClass}">${pct}%</span></td>
+        <td style="color:var(--muted);font-size:0.78rem">${r.date||'—'}</td>
+      </tr>`;
+    } else {
+      html += `<tr>
+        <td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.75rem">${i+1}</td>
+        <td style="font-family:'Space Mono',monospace;font-size:0.82rem">${r.regNo||'—'}</td>
+        <td><span class="score-pill ${pillClass}">${r.score}</span></td>
+        <td style="color:var(--muted)">${r.total}</td>
+        <td><span class="score-pill ${pillClass}">${pct}%</span></td>
+        <td style="font-size:0.82rem">${grade}</td>
+        <td style="color:var(--muted);font-size:0.78rem">${r.date||'—'}</td>
+      </tr>`;
+    }
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('admin-table-body').innerHTML = html;
+}
+
+// ============================================================
+//  QUIZ DATA
+// ============================================================
+const QD = {
+  html: [
+    { q:"What does HTML stand for?", o:["HyperText Markup Language","HyperText Making Language","HighText Markup Language","HyperTransfer Markup Language"], a:0, e:"HTML = HyperText Markup Language — the standard language for structuring web pages." },
+    { q:"Which tag creates the largest heading on a page?", o:["<h6>","<heading>","<h1>","<head>"], a:2, e:"<h1> is the biggest heading. Headings go from h1 (largest) down to h6 (smallest)." },
+    { q:"What does this code create?", c:'<a href="https://google.com">Click me</a>', o:["Shows an image","Creates a clickable link","Makes text bold","Creates a button"], a:1, e:"<a href=''> creates a hyperlink. 'Click me' is the visible text, linking to google.com." },
+    { q:"Which tag is used to add an image to a page?", o:["<picture>","<image>","<photo>","<img>"], a:3, e:"<img src='photo.jpg' alt='desc'> is the correct tag for displaying images." },
+    { q:"What is the purpose of the alt attribute in <img>?", o:["Sets image size","Text shown if image fails to load","Links the image","Adds a border"], a:1, e:"alt text shows when the image can't load, and is read by screen readers for accessibility." },
+    { q:"Which tag creates a numbered (ordered) list?", o:["<ul>","<list>","<ol>","<dl>"], a:2, e:"<ol> = ordered list (1, 2, 3...). <ul> = unordered (bullet points)." },
+    { q:"What does this create?", c:'<input type="text" placeholder="Enter name">', o:["A dropdown menu","A checkbox","A text input box","A submit button"], a:2, e:"<input type='text'> creates a text box. placeholder shows hint text inside it." },
+    { q:"What is the correct HTML tag for a paragraph?", o:["<para>","<p>","<text>","<paragraph>"], a:1, e:"<p> is the paragraph tag. It wraps text and adds spacing above and below." },
+    { q:"Where does the <title> tag go in HTML?", o:["Inside <body>","Inside <footer>","Inside <head>","Before <html>"], a:2, e:"<title> goes inside <head>. It sets the browser tab text — not visible on the page." },
+    { q:"What does <br> do?", o:["Bold text","Horizontal line","Line break","Breaks a table"], a:2, e:"<br> inserts a line break — like pressing Enter. It is a self-closing tag." }
+  ],
+  css: [
+    { q:"What does CSS stand for?", o:["Creative Style Sheets","Computer Style Sheets","Cascading Style Sheets","Colorful Style Sheets"], a:2, e:"CSS = Cascading Style Sheets. 'Cascading' means styles can override each other by priority." },
+    { q:"Which property changes text color?", o:["text-color","font-color","color","foreground"], a:2, e:"Just 'color'. Example: color: red; or color: #ff0000;" },
+    { q:"What does this CSS do?", c:"p {\n  font-size: 18px;\n  color: blue;\n}", o:["Makes all <p> tags 18px and blue","Makes headings blue","Blue border on paragraphs","Highlights all text blue"], a:0, e:"This targets all <p> elements, sets font-size to 18px and text color to blue." },
+    { q:"Which property adds space OUTSIDE an element?", o:["padding","spacing","margin","border"], a:2, e:"margin = outside space (between elements). padding = inside space (between content and border)." },
+    { q:"What does 'display: flex' do?", o:["Makes text flexible","Hides the element","Children sit side-by-side","Makes element full width"], a:2, e:"Flexbox turns the container into a flex container — children can be arranged in rows or columns." },
+    { q:"Which CSS selector targets id='header'?", o:[".header","header","*header","#header"], a:3, e:"# targets IDs. So #header → <div id='header'>. A dot (.) targets class names." },
+    { q:"What does border-radius: 50% do?", c:"border-radius: 50%;", o:["Dashed border","Rotates 50 degrees","Makes a circle","Adds 50% opacity"], a:2, e:"border-radius: 50% makes a square element circular — great for round profile images." },
+    { q:"Default 'display' value for a <div>?", o:["inline","flex","inline-block","block"], a:3, e:"<div> is a block element — it takes full width and starts on a new line by default." },
+    { q:"Which property makes text bold?", o:["font-style: bold","text-weight: bold","font-weight: bold","text-bold: true"], a:2, e:"font-weight: bold; makes text bold. You can also use font-weight: 700." },
+    { q:"What does this do?", c:".box {\n  background: #ff6b35;\n  width: 100px;\n  height: 100px;\n}", o:["Removes box","100×100 orange square","Text 100px","100px border"], a:1, e:"Elements with class='box' become 100×100px orange (#ff6b35) background squares." }
+  ],
+  js: [
+    { q:"What does JS stand for in web development?", o:["Java Syntax","JavaScript","Just Script","Java System"], a:1, e:"JS = JavaScript. Despite the name, it's completely unrelated to the Java programming language." },
+    { q:"Which keyword declares a variable in modern JavaScript?", o:["var","dim","let","define"], a:2, e:"'let' and 'const' are modern (ES6+). 'let' allows reassignment; 'const' does not." },
+    { q:"What does this code do?", c:'document.getElementById("title").innerHTML = "Hello!";', o:["Creates a new element","Changes text of #title to Hello!","Deletes the element","Logs to console"], a:1, e:"getElementById grabs the element with id='title' and innerHTML replaces its content with 'Hello!'." },
+    { q:"What does console.log() do?", o:["Shows an alert box","Prints to browser console","Saves to database","Sends email"], a:1, e:"console.log() prints messages to the browser's developer console — used for debugging." },
+    { q:"What does this output?", c:"let x = 5;\nlet y = 3;\nconsole.log(x + y);", o:["53","8","undefined","Error"], a:1, e:"x + y = 5 + 3 = 8. The + operator adds numbers together." },
+    { q:"How do you write a single-line comment in JavaScript?", o:["<!-- comment -->","# comment","// comment","** comment"], a:2, e:"// makes a single-line comment. /* ... */ makes a multi-line comment." },
+    { q:"What does this code do?", c:'document.querySelector(".btn").addEventListener("click", function() {\n  alert("Clicked!");\n});', o:["Auto-shows alert","Alert when .btn clicked","Removes .btn","Hides .btn"], a:1, e:"addEventListener listens for a 'click' event. When .btn is clicked, the alert fires." },
+    { q:"Which method adds an item to the END of an array?", o:["push()","pop()","shift()","add()"], a:0, e:"push() adds to the end. pop() removes from end. shift() removes from start. unshift() adds to start." },
+    { q:"What is the output?", c:'let name = "Ali";\nconsole.log("Hello, " + name);', o:["Hello, Ali","Hello, name","Ali Hello,","Error"], a:0, e:"'Hello, ' + name concatenates the string and variable. Output: Hello, Ali" },
+    { q:"What does 'typeof' do in JavaScript?", o:["Converts a value","Returns the data type","Compares two values","Deletes a variable"], a:1, e:"typeof returns the type as a string: typeof 42 = 'number', typeof 'hi' = 'string'." }
+  ],
+  php: [
+    { q:"What does PHP stand for?", o:["PHP: Hypertext Preprocessor","Page Hypertext Protocol","Pretty Handy Program","Partial HTML Processing"], a:0, e:"PHP originally = Personal Home Page, now recursively = PHP: Hypertext Preprocessor." },
+    { q:"How do PHP variables start?", o:["@","#","$","&"], a:2, e:"All PHP variables start with $. Example: $name = 'Ali'; $age = 25;" },
+    { q:"What does this output?", c:'<?php\n  $name = "Ali";\n  echo "Hello, " . $name;\n?>', o:["Hello, $name","Hello, Ali","$name","Error"], a:1, e:"echo outputs text. The dot (.) joins strings. $name = 'Ali', so output is: Hello, Ali" },
+    { q:"Which PHP function gets the length of a string?", o:["len()","count()","strlen()","size()"], a:2, e:"strlen() counts characters in a string. strlen('Hello') = 5." },
+    { q:"How do you write a single-line comment in PHP?", o:["<!-- comment -->","// comment","** comment","@comment"], a:1, e:"// is a single-line comment in PHP. You can also use # or /* ... */ for multi-line." },
+    { q:"What does this output?", c:'<?php\n  $nums = [1, 2, 3, 4, 5];\n  echo count($nums);\n?>', o:["1","5","12345","The array"], a:1, e:"count() returns the number of items in an array. [1,2,3,4,5] has 5 items → prints 5." },
+    { q:"Which superglobal holds data from a POST form submission?", o:["$_GET","$_SESSION","$_POST","$_REQUEST"], a:2, e:"$_POST holds data sent via POST method forms. $_GET holds URL query string parameters." },
+    { q:"What does this PHP loop output?", c:'<?php\n  for ($i = 1; $i <= 3; $i++) {\n    echo $i . " ";\n  }\n?>', o:["1 2 3","3","1","0 1 2 3"], a:0, e:"Starts at $i=1, runs while $i<=3, increments each time. Output: 1 2 3" },
+    { q:"Which function connects to a MySQL database in PHP?", o:["db_connect()","mysql_open()","mysqli_connect()","connect_db()"], a:2, e:"mysqli_connect() connects to MySQL. Takes host, username, password, and database name." },
+    { q:"Where does PHP code run?", o:["In the browser","On user's device","On the web server","In the database"], a:2, e:"PHP runs on the web server — not in the browser. The browser only sees the HTML output PHP produces." }
+  ]
+};
+
+function buildMaster() {
+  const all = [];
+  ['html','css','js','php'].forEach(s => QD[s].forEach(q => all.push({...q, _s:s})));
+  for (let i = all.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [all[i], all[j]] = [all[j], all[i]];
+  }
+  return all;
+}
+
+// ============================================================
+//  UI
+// ============================================================
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function refreshHome() {
+  const n = Object.values(done).filter(Boolean).length;
+  document.getElementById('overall-fill').style.width = (n/4*100)+'%';
+  document.getElementById('overall-count').textContent = n+' / 4 completed';
+  ['html','css','js','php'].forEach(s => {
+    document.getElementById('card-'+s).classList.toggle('done', done[s]);
+    const ch = document.getElementById('chip-'+s);
+    if (ch) ch.classList.toggle('done', done[s]);
+  });
+  const mc = document.getElementById('card-master');
+  const unlocked = n === 4;
+  mc.classList.toggle('locked', !unlocked);
+  document.getElementById('master-start-btn').style.display = unlocked ? 'inline-flex' : 'none';
+  document.getElementById('master-lock-msg').style.display  = unlocked ? 'none' : 'block';
+}
+
+function tryMaster() {
+  const n = Object.values(done).filter(Boolean).length;
+  if (n < 4) return;
+  startQuiz('master');
+}
+
+// ============================================================
+//  QUIZ
+// ============================================================
+function startQuiz(session) {
+  if (session === 'master' && Object.values(done).filter(Boolean).length < 4) return;
+  curSession = session; curQ = 0; score = 0; answered = false;
+  questions = session === 'master' ? buildMaster() : [...QD[session]];
+  const labelMap = { html:'HTML Quiz', css:'CSS Quiz', js:'JavaScript Quiz', php:'PHP Quiz', master:'🏆 Master Challenge' };
+  const el = document.getElementById('qlabel');
+  el.textContent = labelMap[session];
+  el.className = 'qlabel ' + session + '-label';
+  document.getElementById('prog-bar').className = 'prog-bar ' + session + '-fill';
+  document.getElementById('next-btn').className = 'next-btn ' + session + '-btn';
+  show('quiz');
+  renderQ();
+}
+
+function renderQ() {
+  const q = questions[curQ];
+  answered = false;
+  document.getElementById('q-counter').textContent = `Question ${curQ+1} of ${questions.length}`;
+  document.getElementById('q-live-score').textContent = `Score: ${score}`;
+  document.getElementById('q-num').textContent = `Q${curQ+1}`;
+  document.getElementById('q-text').textContent = q.q;
+  const ce = document.getElementById('q-code');
+  if (q.c) { ce.textContent = q.c; ce.style.display = 'block'; }
+  else { ce.style.display = 'none'; }
+  document.getElementById('prog-bar').style.width = ((curQ+1)/questions.length*100)+'%';
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach((L, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.innerHTML = `<span class="opt-letter">${L}</span>${q.o[i]}`;
+    b.onclick = () => pick(i);
+    opts.appendChild(b);
+  });
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'none'; fb.className = 'feedback';
+  document.getElementById('next-btn').style.display = 'none';
+  const card = document.getElementById('q-card');
+  card.style.animation = 'none'; card.offsetHeight; card.style.animation = '';
+}
+
+function pick(chosen) {
+  if (answered) return;
+  answered = true;
+  const q = questions[curQ];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  if (chosen === q.a) {
+    btns[chosen].classList.add('correct');
+    score++;
+    fb.className = 'feedback fb-ok';
+    fb.innerHTML = '✅ Correct! ' + q.e;
+  } else {
+    btns[chosen].classList.add('wrong');
+    btns[q.a].classList.add('show-correct');
+    fb.className = 'feedback fb-err';
+    fb.innerHTML = '❌ Not quite. ' + q.e;
+  }
+  fb.style.display = 'block';
+  document.getElementById('q-live-score').textContent = `Score: ${score}`;
+  const nb = document.getElementById('next-btn');
+  nb.style.display = 'block';
+  nb.textContent = curQ === questions.length-1 ? 'See Results →' : 'Next Question →';
+}
+
+function nextQ() {
+  curQ++;
+  if (curQ >= questions.length) showResults();
+  else renderQ();
+}
+
+function showResults() {
+  if (curSession !== 'master') done[curSession] = true;
+  const total = questions.length;
+  const pct = Math.round(score/total*100);
+  document.getElementById('s-correct').textContent = score;
+  document.getElementById('s-wrong').textContent = total - score;
+  document.getElementById('s-pct').textContent = pct+'%';
+  const sd = document.getElementById('score-big');
+  sd.textContent = score+'/'+total;
+  sd.className = 'score-big '+(pct>=80?'sg':pct>=50?'so':'sb');
+  const ms = pct===100
+    ? {e:'🏆',t:'Perfect Score!',s:`Flawless ${curSession.toUpperCase()} mastery!`}
+    : pct>=80
+    ? {e:'🎉',t:'Great Job!',s:`You really know your ${curSession.toUpperCase()}!`}
+    : pct>=50
+    ? {e:'👍',t:'Good Effort!',s:`Keep practising your ${curSession.toUpperCase()} skills.`}
+    : {e:'📚',t:'Keep Studying!',s:`Review ${curSession.toUpperCase()} basics and try again.`};
+  document.getElementById('res-emoji').textContent = ms.e;
+  document.getElementById('res-title').textContent = ms.t;
+  document.getElementById('res-sub').textContent   = ms.s;
+  const allDone = Object.values(done).every(Boolean);
+  document.getElementById('unlock-banner').style.display = (curSession !== 'master' && allDone) ? 'block' : 'none';
+  const cmap = { html:'var(--html-color)', css:'var(--css-color)', js:'var(--js-color)', php:'var(--php-color)', master:'var(--master-color)' };
+  const rb = document.getElementById('btn-retry');
+  rb.style.borderColor = cmap[curSession];
+  rb.style.color = cmap[curSession];
+
+  // Save to Firebase
+  saveResult(curSession, score, total);
+
+  show('results');
+  refreshHome();
+}
+
+function retryQuiz() { startQuiz(curSession); }
+function goHome()    { show('home'); refreshHome(); }
+
+refreshHome();
+</script>
+</body>
+</html>
